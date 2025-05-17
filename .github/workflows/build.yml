@@ -194,15 +194,17 @@ jobs:
           patch -p1 -F 3 < 69_hide_stuff.patch
 
       - name: Apply Addtional Patches
-        if: ${{ inputs.manifest == 'oneplus_11_u.xml' }}
+        # if: ${{ inputs.manifest == 'oneplus_11_u.xml' }}
         run: |
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG/kernel_platform/common"
           # Apply additional patch
-          cp ../../../kernel_patches_additional/a14_fake_config_fix.patch ./
-          cp ../../../kernel_patches_additional/fake_defconfig ./
-          patch -p1 -F 3 < a14_fake_config_fix.patch
-          ls -la ./fake_defconfig
+          # cp ../../../kernel_patches_additional/a14_fake_config_fix.patch ./
+          # cp ../../../kernel_patches_additional/fake_defconfig ./
+          # patch -p1 -F 3 < a14_fake_config_fix.patch
+          # ls -la ./fake_defconfig
+          cp ../../../kernel_patches_additional/fake_config.patch ./
+          patch -p1 -F 3 < fake_config.patch
 
       - name: Add SUSFS Configuration Settings
         run: |
@@ -335,7 +337,7 @@ jobs:
           perl -pi -e 's{UTS_VERSION="\$\(echo \$UTS_VERSION \$CONFIG_FLAGS \$TIMESTAMP \| cut -b -\$UTS_LEN\)"}{UTS_VERSION="#1 SMP PREEMPT Thu Mar 05 04:20:00 UTC 2025"}' ./common/scripts/mkcompile_h
           perl -pi -e 's{UTS_VERSION="\$\(echo \$UTS_VERSION \$CONFIG_FLAGS \$TIMESTAMP \| cut -b -\$UTS_LEN\)"}{UTS_VERSION="#1 SMP PREEMPT Thu Mar 05 04:20:00 UTC 2025"}' ./msm-kernel/scripts/mkcompile_h
           
-          find . -type f -exec sed -i 's/\(make\s\+-C[^\n]*\)\s\+/\1 -j$(nproc) /g' {} +
+          find . -type f -exec sed -i 's/\(make\s\+-C[^\n]*\)\s\+/\1 -j$(nproc) V=1 /g' {} +
 
       - name: Build the Kernel
         run: |
@@ -405,16 +407,16 @@ jobs:
           sed -i 's|^device\.name4=.*|device.name4=PHB110|' anykernel.sh
           sed -i '/ui_print " " "  -> ksu_supported: $ksu_supported"/i \
           ui_print "Features:"\
-          ui_print "-> KernelSU-Next-Official v1.0.6 (12XXX) "\
+          ui_print "-> KernelSU-Next-Official v1.0.6 (${{ env.KSUVER }}) "\
           ui_print "-> SUSFS ඞ v1.5.7"\
           ui_print "-> Manual Hooks for Better Hiding"\
           ui_print "-> Wireguard Support"\
           ui_print "-> Simple Maphide for LineageOS Detections"\
           ui_print "-> Futile Maphide for jit-zygote-cache Detections"\
           ui_print "-> Magic Mount Support"\
-          ui_print "-> CONFIG_TMPFS_XATTR Support for Mountify"' anykernel.sh
-          # ui_print "-> CONFIG_TMPFS_XATTR Support for Mountify"\
-          # ui_print "-> TCP Congestion Algorithm: BBR enabled"' anykernel.sh
+          ui_print "-> CONFIG_TMPFS_XATTR Support for Mountify"\
+          ui_print "-> TCP Congestion Algorithm: BBR enabled"' anykernel.sh
+          # ui_print "-> CONFIG_TMPFS_XATTR Support for Mountify"' anykernel.sh
           
           # Zip the files in the AnyKernel3 directory with a new naming convention
           ZIP_NAME="${{ inputs.model }}_${{ inputs.android_version }}_${{ inputs.kernel_version }}_Next_SUSFS_AnyKernel3.zip"
